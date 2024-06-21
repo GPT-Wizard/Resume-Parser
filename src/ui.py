@@ -1,4 +1,5 @@
 import streamlit as st
+from pypdf import PdfReader
 from src.model import model_options
 
 def sidebar():
@@ -12,3 +13,14 @@ def sidebar():
             st.slider(
                 "Max Tokens", min_value=0, max_value=8000, value=1000, key="max_tokens"
             )
+
+
+def file_uploader():
+    uploaded_file = st.file_uploader("Upload Candidate Resume PDF", type="pdf")
+    if uploaded_file:
+        resume_text = ""
+        reader = PdfReader(uploaded_file)
+        for page_number in range(len(reader.pages)):
+            page = reader.pages[page_number]
+            resume_text += page.extract_text()
+        return resume_text

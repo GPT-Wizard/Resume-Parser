@@ -1,7 +1,7 @@
 import streamlit as st
 from src.model import generate
 from src.prompt import recipe_prompt_template
-from src.ui import sidebar
+from src.ui import sidebar, file_uploader
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -27,6 +27,7 @@ def main():
     st.set_page_config(page_title="Recipe Builder", page_icon="🍽️")
     st.title(':gray[Recipe Builder] 🍽️')
     sidebar()
+    # resume = file_uploader() # Uncomment this line to enable file uploader
     display_chat()
 
 if __name__ == "__main__":
