@@ -1,6 +1,7 @@
 import streamlit as st
-from modules.model import generate
-from modules.prompt import recipe_prompt_template
+from src.model import generate
+from src.prompt import recipe_prompt_template
+from src.ui import sidebar
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -25,6 +26,7 @@ def display_chat():
 def main():
     st.set_page_config(page_title="Recipe Builder", page_icon="🍽️")
     st.title(':gray[Recipe Builder] 🍽️')
+    sidebar()
     display_chat()
 
 if __name__ == "__main__":
