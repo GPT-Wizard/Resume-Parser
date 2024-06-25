@@ -1,10 +1,13 @@
-def recipe_prompt_template(user_input):
-    return f"""Your are one of the best creative chef in the world. You have to give an amazing recipe to a beginner based on 
-    the ingredients given. 
-    Here is the ingredients: ```{user_input}```.
-    Give the recipe containing the following details:
-    1. Name of the dish
-    2. Ingredients with quantity as table
-    3. Cooking instructions
+def basic_prompt_template(context, user_input):
+    return f"""Here is the candidate's resume:
+    {context}
+    Here is the query:
+    {user_input}
+    """
 
-    Your recipe in Markdown format:"""
+def summary_prompt_template(context):
+    return f"""Here is the candidate's resume:
+    {context}
+    Create a short summary of the candidate's profile with key points.
+    Summary in markdown format:
+    """
