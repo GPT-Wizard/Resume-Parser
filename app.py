@@ -1,7 +1,48 @@
 import streamlit as st
-from src.model import generate
-from src.prompt import basic_prompt_template, summary_prompt_template
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnableParallel
 from src.ui import sidebar, file_uploader
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+llm = ChatOpenAI(api_key=os.environ.get("OPENAI_API_KEY"), model="gpt-3.5-turbo-16k")
+
+qa_prompt = ChatPromptTemplate.from_messages([
+    ("system", "You are a AI assistant for an recruiter to understand about an candidate's resume. Your task is to answer the questions by the user based only on the candidate resume."),
+    ("user", """
+    Resume Details:
+    {resume}
+    Recruiters Question:
+    {question}
+    Answer:
+    """)
+])
+
+qa_generation_prompt = ChatPromptTemplate.from_messages([
+    ("system", "You are a world-class technical recruiter. Your task is to ask questions based on the job description to evaluate the candidate's resume."),
+    ("user", """Ask questions based on the job description to evaluate the candidate's resume:
+    Job Description:
+    {job_description}
+    Resume Details:
+    {resume}
+    """)
+])
+
+resume_parser_prompt = ChatPromptTemplate.from_messages([
+    ("system", "You are a world-class technical text parser. Your task is to convert resume details into a well-structured JSON formatted output with key-value pairs."),
+    ("user", """Convert the following resume details into a JSON formatted output:
+    Resume Details:
+     ```
+     {resume}
+     ```
+    JSON output should be structured key-value pairs with the following fields:
+    Name, Email, Phone, Address, Summary, Experience, Education, Skills, Certifications, Projects, Others, etc.
+    JSON Output:
+    """)
+])
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -26,8 +67,8 @@ def display_chat(resume):
         with st.chat_message("user"):
             st.markdown(user_input)
 
-        prompt = basic_prompt_template(resume, user_input) # Prompt based on the user input
-        response = generate(prompt) # Generates a response based on the prompt
+        chain = qa_prompt | llm   
+        response = chain.invoke({"input": user_input})      
 
         with st.chat_message("assistant"):
             st.markdown(response)
@@ -40,12 +81,16 @@ def main():
     resume = file_uploader()
     if resume:
         st.expander("Resume", expanded=False).markdown(resume)
-        prompt = summary_prompt_template(resume) 
-        summary = generate(prompt)
-        st.expander("Summary", expanded=False).markdown(summary)
+        
+        resume_parser_chain = resume_parser_prompt | llm | StrOutputParser()
+        qa_generation_chain = qa_generation_prompt | llm | StrOutputParser()
 
+        main_chain = RunnableParallel({"qa_set": qa_generation_chain, "parsed": resume_parser_chain})
+        result = main_chain.invoke({"job_description": job_description, "resume": resume})
+
+        st.expander("Parsed", expanded=False).json(result["parsed"])
+        st.expander("Q/A Generation", expanded=False).markdown(result["qa_set"])
         # Todo: Display the functional requirement outputs
-        # st.expander("Resume Parsing", expanded=False).markdown(parsed_resume)
 
         # Display the chat interface with Q/A
         display_chat(resume)
