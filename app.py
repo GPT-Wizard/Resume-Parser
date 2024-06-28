@@ -1,6 +1,6 @@
 import streamlit as st
 from src.model import generate
-from src.prompt import basic_prompt_template, summary_prompt_template
+from src.prompt import qa_prompt_template, summary_prompt_template
 from src.ui import sidebar, file_uploader
 
 if "messages" not in st.session_state:
@@ -26,7 +26,7 @@ def display_chat(resume):
         with st.chat_message("user"):
             st.markdown(user_input)
 
-        prompt = basic_prompt_template(resume, user_input) # Prompt based on the user input
+        prompt = qa_prompt_template(resume, user_input) # Prompt based on the user input
         response = generate(prompt) # Generates a response based on the prompt
 
         with st.chat_message("assistant"):

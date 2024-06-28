@@ -1,7 +1,6 @@
-def basic_prompt_template(context, user_input):
-    return f"""Here is the candidate's resume:
+def qa_prompt_template(context, user_input):
+    return f"""
     {context}
-    Here is the query:
     {user_input}
     """
 
